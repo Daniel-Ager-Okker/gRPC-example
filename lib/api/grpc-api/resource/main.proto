@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+service GrpcTransport {
+    // Registrate new user
+    rpc Registrate(ClientRegistrationReq) returns (ClientRegistrationResp) {}
+
+    // Subscribe to user
+    rpc Subscribe(SubscriptionReq) returns (SubscriptionResp) {}
+
+    // Estimate dishes
+    rpc EstimateEstablishment(EstimationReq) returns (EstimatonResp) {}
+
+    // Subscription estimations
+    rpc GetSubscriptionEstimations(SubscriptionEstimationsReq) returns (SubscriptionEstimationsResp) {}
+}
+
+// Message for registrate new user
+message ClientRegistrationReq {
+    string electronic_mail       = 1;
+    string name                  = 2;
+    string sername               = 3;
+    optional string phone_number = 4;
+}
+
+// Response on new user registration
+message ClientRegistrationResp {
+    bool            ok     = 1;
+    optional string reason = 2;
+}
+
+// Message for subscribe to another user
+message SubscriptionReq {
+    string subscriber_e_mail   = 1;
+    string subscription_e_mail = 2;
+}
+
+// Server response about subscription
+message SubscriptionResp {
+    bool            ok     = 1;
+    optional string reason = 2;
+}
+
+// Message for estimate dishes
+message EstimationReq {
+    string            e_mail        = 1;
+    EstablishmentData establishment = 2;
+}
+
+// Message for data about establishment
+message EstablishmentData {
+    string             name    = 1;
+    string             address = 2;
+    map<string, int32> dishes  = 3;
+}
+
+// Server response about dishes estimation
+message EstimatonResp {
+    bool            ok     = 1;
+    optional string reason = 2;
+}
+
+// Message for get subscription dishes estimations
+message SubscriptionEstimationsReq {
+    string subscribtion_mail = 1;
+}
+
+// Server response about getting subscription estimations
+message SubscriptionEstimationsResp {
+    bool                       ok          = 1;
+    optional string            reason      = 2;
+    repeated EstablishmentData estimations = 3;
+}
