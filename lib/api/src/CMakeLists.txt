@@ -1,22 +1,22 @@
 cmake_minimum_required(VERSION 3.23 FATAL_ERROR)
 
-project(lib-grpc-api)
+project(lib-api)
 set(CMAKE_CXX_STANDARD 20)
 
 add_library(${PROJECT_NAME} STATIC
-    ./src/GrpcAPI.cpp
-    ./src/ServerGRPC.cpp
-    ./src/main.grpc.pb.cc
-    ./src/main.pb.cc
+    ./GrpcAPI.cpp
+    ./ServerGRPC.cpp
+    ./main.grpc.pb.cc
+    ./main.pb.cc
 )
 
 # Public headers
 target_sources(${PROJECT_NAME} PUBLIC
     FILE_SET lib_grpc_api_HEADERS
     TYPE HEADERS
-    BASE_DIRS ./include/
+    BASE_DIRS ../include/
     FILES
-        ./include/grpc-api/GrpcAPI.h
+        ../include/api/GrpcAPI.h
 )
 
 # Link libraries

@@ -1,4 +1,4 @@
-#include <grpc-api/GrpcAPI.h>
+#include <api/GrpcAPI.h>
 #include <storage/IStorageManager.h>
 
 using storage::IStorageManager;
