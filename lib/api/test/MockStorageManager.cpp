@@ -25,7 +25,12 @@ bool test_grpc_api::MockStorageManager::subscribeUserOnAnother(const std::string
     auto subscriptionIt = users_.find(subscription);
     if (subscriptionIt == users_.end()) return false;
 
-    // 3.Add information
+    // 3.Check if user "subscriber" already follows on "subscription"
+    if (subscriberIt->second.subscribtions.find(subscription) !=
+        subscriberIt->second.subscribtions.end())
+        return false;
+
+    // 4.Add information
     subscriberIt->second.subscribtions.insert(subscription);
     subscriptionIt->second.subscribers.insert(subscriber);
 

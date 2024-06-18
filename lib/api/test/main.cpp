@@ -16,24 +16,67 @@ TEST(ServerSuite, RegistrateUser) {
     std::shared_ptr<MockStorageManager> pDBManager = std::make_shared<MockStorageManager>();
     std::thread                         serverThread(api_grpc::runServer, SERVER_IP, pDBManager);
 
+    // 2.Create client
     std::shared_ptr<grpc::Channel> pChannel =
         grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
 
     test_grpc_api::TestClient client(pChannel);
 
-    // 2.Add user
+    // 3.Add user
     auto [ok, reason] =
         client.registrateUser("someUser@mail.ru", "someUserName", "someuserSername", std::nullopt);
     ASSERT_EQ(true, ok);
     ASSERT_EQ("", reason);
 
-    // 3.try to add user again
+    // 4.Try to add user again
     std::tie(ok, reason) =
         client.registrateUser("someUser@mail.ru", "someUserName", "someuserSername", std::nullopt);
     ASSERT_EQ(false, ok);
     ASSERT_EQ("already have such e-mail", reason);
 
-    // 4.Stop server
+    // 5.Stop server
+    api_grpc::stopServer();
+    serverThread.join();
+}
+
+TEST(ServerSuite, Subscribe) {
+    // 1.Run server
+    std::shared_ptr<MockStorageManager> pDBManager = std::make_shared<MockStorageManager>();
+    std::thread                         serverThread(api_grpc::runServer, SERVER_IP, pDBManager);
+
+    // 2.Create client
+    std::shared_ptr<grpc::Channel> pChannel =
+        grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
+
+    test_grpc_api::TestClient client(pChannel);
+
+    // 3.Add users
+    client.registrateUser(
+        "subscriber@mail.ru", "subscriberName", "subscriberSername", std::nullopt);
+    client.registrateUser(
+        "subscripton@mail.ru", "subscriptonName", "subscriptonSername", std::nullopt);
+
+    // 3.Subscribe: invalid case 1
+    auto [ok, reason] =
+        client.subscribe("non-existing-user1@mail.ru", "non-existing-user2@mail.ru");
+    ASSERT_EQ(false, ok);
+    ASSERT_EQ("user is not registrated: non-existing-user1@mail.ru", reason);
+
+    // 4.Subscribe: invalid case 2
+    std::tie(ok, reason) = client.subscribe("subscriber@mail.ru", "non-existing-user2@mail.ru");
+    ASSERT_EQ(false, ok);
+    ASSERT_EQ("user is not registrated: non-existing-user2@mail.ru", reason);
+
+    // 5.Subscribe: valid case
+    std::tie(ok, reason) = client.subscribe("subscriber@mail.ru", "subscripton@mail.ru");
+    ASSERT_EQ(true, ok);
+
+    // 6.Subscribe: try again
+    std::tie(ok, reason) = client.subscribe("subscriber@mail.ru", "subscripton@mail.ru");
+    ASSERT_EQ(false, ok);
+    ASSERT_EQ("user subscriber@mail.ru already follows on subscripton@mail.ru", reason);
+
+    // 7.Stop server
     api_grpc::stopServer();
     serverThread.join();
 }
