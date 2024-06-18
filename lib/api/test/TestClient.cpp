@@ -50,3 +50,35 @@ std::pair<bool, std::string> test_grpc_api::TestClient::subscribe(const std::str
 
     return std::make_pair(ok, reason);
 }
+
+//! Method for estimate establishment
+std::pair<bool, std::string>
+test_grpc_api::TestClient::estimateEstablishment(const std::string& userMail,
+                                                 const std::string& establishmentName,
+                                                 const std::string& establishmentAddress,
+                                                 const std::map<std::string, unsigned>& dishes) {
+
+    ClientContext context;
+
+    // 1.Prepare request
+    EstimationReq req;
+    req.set_e_mail(userMail);
+
+    EstablishmentData* pData = new EstablishmentData();
+    pData->set_name(establishmentName);
+    pData->set_address(establishmentAddress);
+
+    auto pDataDishes = pData->mutable_dishes();
+    for (const auto& [dishName, estimation] : dishes) {
+        (*pDataDishes)[dishName] = estimation;
+    }
+
+    // 2.Call rpc-method and handle server response
+    EstimatonResp resp;
+    pStub_->EstimateEstablishment(&context, req, &resp);
+
+    const bool        ok     = resp.ok();
+    const std::string reason = resp.has_reason() ? resp.reason() : "";
+
+    return std::make_pair(ok, reason);
+}

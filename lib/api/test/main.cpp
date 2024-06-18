@@ -81,6 +81,37 @@ TEST(ServerSuite, Subscribe) {
     serverThread.join();
 }
 
+TEST(ServerSuite, Estimate) {
+    // 1.Run server
+    std::shared_ptr<MockStorageManager> pDBManager = std::make_shared<MockStorageManager>();
+    std::thread                         serverThread(api_grpc::runServer, SERVER_IP, pDBManager);
+
+    // 2.Create client
+    std::shared_ptr<grpc::Channel> pChannel =
+        grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
+
+    test_grpc_api::TestClient client(pChannel);
+
+    // 3.Add user
+    client.registrateUser("someUser@mail.ru", "someUserName", "someUserSername", std::nullopt);
+
+    // 4.Estimate establishment: invalid case
+    const std::map<std::string, unsigned> dishes = {
+        {"hinkali", 5}, {"harcho", 4}, {"hachapuri", 5}};
+    auto [ok, reason] =
+        client.estimateEstablishment("NON_EXISTEN_USER@mail.ru", "ProHinkali", "Moscow", dishes);
+    ASSERT_EQ(false, ok);
+    ASSERT_EQ("user is not registrated: NON_EXISTEN_USER@mail.ru", reason);
+
+    // 5.Estimate establishment: valid case
+    std::tie(ok, reason) =
+        client.estimateEstablishment("someUser@mail.ru", "ProHinkali", "Moscow", dishes);
+
+    // 6.Stop server
+    api_grpc::stopServer();
+    serverThread.join();
+}
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
 

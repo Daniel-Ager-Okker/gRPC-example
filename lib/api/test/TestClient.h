@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <memory>
 
 #include <grpcpp/channel.h>
@@ -23,6 +24,13 @@ public:
     //! Method for subscrive on user
     std::pair<bool, std::string> subscribe(const std::string& subscriber,
                                            const std::string& subscribtion);
+
+    //! Method for estimate establishment
+    std::pair<bool, std::string>
+    estimateEstablishment(const std::string&                     userMail,
+                          const std::string&                     establishmentName,
+                          const std::string&                     establishmentAddress,
+                          const std::map<std::string, unsigned>& dishes);
 
 private:
     std::unique_ptr<GrpcTransport::Stub> pStub_;
