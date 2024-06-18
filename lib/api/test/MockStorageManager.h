@@ -1,6 +1,6 @@
 // include for mock
-#include "../../storage/include/storage/IStorageManager.h"
 #include "../../storage/include/storage/DTOs.h"
+#include "../../storage/include/storage/IStorageManager.h"
 
 #include <gmock/gmock.h>
 
@@ -17,28 +17,22 @@ public:
 
     void popUser(const storage::UserDTO& userInfo) override;
 
-    bool subscribeUserOnAnother(
-        const std::string& subscriber,
-        const std::string& subscription
-    ) override;
+    bool subscribeUserOnAnother(const std::string& subscriber,
+                                const std::string& subscription) override;
 
-    bool addUserEstablishment(
-        const std::string& eMail,
-        const storage::EstablishmentDTO& placeInfo
-    ) override;
+    bool addUserEstablishment(const std::string&               eMail,
+                              const storage::EstablishmentDTO& placeInfo) override;
 
-    std::vector<storage::EstablishmentDTO> getUserEstablishments(
-        const std::string& eMail
-    ) override;
+    std::vector<storage::EstablishmentDTO> getUserEstablishments(const std::string& eMail) override;
 
 private:
     struct UserData {
         std::set<std::string>                  subscribers;
         std::set<std::string>                  subscribtions;
         storage::UserDTO                       userInfo;
-        std::vector<storage::EstablishmentDTO> establishments_;
+        std::vector<storage::EstablishmentDTO> establishments;
     };
     std::map<std::string, UserData> users_;
 };
 
-}
+} // namespace test_grpc_api

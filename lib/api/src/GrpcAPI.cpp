@@ -10,13 +10,25 @@ using api_grpc::ServerGRPC;
 using grpc::Server;
 using grpc::ServerBuilder;
 
-void api_grpc::runServer(const std::string& address, std::shared_ptr<storage::IStorageManager>& pStoreManager) {
-    ServerGRPC serverGRPC(pStoreManager);
+ServerGRPC*             pService = nullptr;
+std::unique_ptr<Server> pServer  = nullptr;
+
+void api_grpc::runServer(const std::string&                        address,
+                         std::shared_ptr<storage::IStorageManager> pStoreManager) {
+    pService = new ServerGRPC(pStoreManager);
 
     ServerBuilder serverBuilder;
     serverBuilder.AddListeningPort(address, grpc::InsecureServerCredentials());
-    serverBuilder.RegisterService(&serverGRPC);
-    std::unique_ptr<Server> server(serverBuilder.BuildAndStart());
+    serverBuilder.RegisterService(pService);
+    pServer = serverBuilder.BuildAndStart();
     std::cout << "Server listening on " << address << std::endl;
-    server->Wait();
+    pServer->Wait();
+}
+
+//! Public function for stop gRPC-server
+void api_grpc::stopServer() {
+    pServer->Shutdown();
+
+    delete pService;
+    pServer.release();
 }

@@ -3,6 +3,11 @@ cmake_minimum_required(VERSION 3.23 FATAL_ERROR)
 project(lib-api)
 set(CMAKE_CXX_STANDARD 20)
 
+# Generate cpp-files due to proto
+execute_process(
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/generate.sh
+)
+
 add_library(${PROJECT_NAME} STATIC
     ./GrpcAPI.cpp
     ./ServerGRPC.cpp
@@ -37,9 +42,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
   ${_REFLECTION}
   ${_GRPC_GRPCPP}
   ${_PROTOBUF_LIBPROTOBUF}
-)
-
-# Generate cpp-files due to proto
-execute_process(
-    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/generate.sh
 )

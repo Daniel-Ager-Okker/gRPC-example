@@ -1,10 +1,10 @@
 #include "ServerGRPC.h"
 
-#include <storage/IStorageManager.h>
 #include <storage/DTOs.h>
+#include <storage/IStorageManager.h>
 
-using grpc::Status;
 using grpc::ServerContext;
+using grpc::Status;
 
 using api_grpc::ServerGRPC;
 
@@ -37,47 +37,43 @@ void fillEstablishmentByDTO(EstablishmentData* pData, const EstablishmentDTO& dt
     }
 }
 
-}
+} // namespace
 
 //! Constructor
-ServerGRPC::ServerGRPC(std::shared_ptr<IStorageManager> pStoreManager)
-    : pStorageManager_(pStoreManager) {}
+ServerGRPC::ServerGRPC(std::shared_ptr<IStorageManager> pStoreManager) :
+    pStorageManager_(pStoreManager) {}
 
 //! Destructor
 ServerGRPC::~ServerGRPC() {}
 
 //! Registrate new user
-Status ServerGRPC::Registrate(
-    ServerContext* context,
-    const ClientRegistrationReq* request,
-    ClientRegistrationResp* response
-)
-{
+Status ServerGRPC::Registrate(ServerContext*               context,
+                              const ClientRegistrationReq* pRequest,
+                              ClientRegistrationResp*      pResponse) {
+
     // 1.Check if we have such e-mail in db already
-    if (pStorageManager_->hasUser(request->electronic_mail())) {
-        response->set_ok(false);
-        response->set_reason("already have such e-mail");
+    if (pStorageManager_->hasUser(pRequest->electronic_mail())) {
+        pResponse->set_ok(false);
+        pResponse->set_reason("already have such e-mail");
         return Status::OK;
     }
 
     // 2.Put new user into the database
-    const UserDTO userInfo{
-        .eMail = request->electronic_mail(),
-        .name = request->name(),
-        .sername = request->sername(),
-        .phoneNumber = request->has_phone_number() ? request->phone_number() : ""
-    };
+    const UserDTO userInfo{.eMail   = pRequest->electronic_mail(),
+                           .name    = pRequest->name(),
+                           .sername = pRequest->sername(),
+                           .phoneNumber =
+                               pRequest->has_phone_number() ? pRequest->phone_number() : ""};
     pStorageManager_->putUser(userInfo);
+    pResponse->set_ok(true);
+
     return Status::OK;
 }
 
 //! Subscribe to user
-Status ServerGRPC::Subscribe(
-    ServerContext* context,
-    const SubscriptionReq* request,
-    SubscriptionResp* response
-)
-{
+Status ServerGRPC::Subscribe(ServerContext*         context,
+                             const SubscriptionReq* request,
+                             SubscriptionResp*      response) {
     response->set_ok(false);
 
     // 1.Validation: has subscriber user
@@ -106,12 +102,9 @@ Status ServerGRPC::Subscribe(
 }
 
 //! Estimate dishes
-Status ServerGRPC::EstimateEstablishment(
-    ServerContext* context,
-    const EstimationReq* request,
-    EstimatonResp* response
-)
-{
+Status ServerGRPC::EstimateEstablishment(ServerContext*       context,
+                                         const EstimationReq* request,
+                                         EstimatonResp*       response) {
     response->set_ok(false);
 
     // 1.Validation: has client-user
@@ -132,12 +125,9 @@ Status ServerGRPC::EstimateEstablishment(
 }
 
 //! Subscription estimations
-Status ServerGRPC::GetSubscriptionEstimations(
-    ServerContext* context,
-    const SubscriptionEstimationsReq* request,
-    SubscriptionEstimationsResp* response
-)
-{
+Status ServerGRPC::GetSubscriptionEstimations(ServerContext*                    context,
+                                              const SubscriptionEstimationsReq* request,
+                                              SubscriptionEstimationsResp*      response) {
     // 1.Validation: has subscribtion user
     const std::string& eMail = request->subscribtion_mail();
     if (!pStorageManager_->hasUser(eMail)) {
