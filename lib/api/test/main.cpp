@@ -112,6 +112,50 @@ TEST(ServerSuite, Estimate) {
     serverThread.join();
 }
 
+TEST(ServerSuite, GetEstimations) {
+    // 1.Run server
+    std::shared_ptr<MockStorageManager> pDBManager = std::make_shared<MockStorageManager>();
+    std::thread                         serverThread(api_grpc::runServer, SERVER_IP, pDBManager);
+
+    // 2.Create client
+    std::shared_ptr<grpc::Channel> pChannel =
+        grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
+
+    test_grpc_api::TestClient client(pChannel);
+
+    // 3.Get establishments: invalid case
+    std::vector<TestClient::Establishment_t> establishments;
+    auto [ok, reason] = client.getEstimations("non-existen-user@mail.ru", establishments);
+    ASSERT_EQ(false, ok);
+    ASSERT_EQ("user is not registrated: non-existen-user@mail.ru", reason);
+
+    // 4.Add user and his establishments (valid case)
+    client.registrateUser("someUser@mail.ru", "someUserName", "someUserSername", std::nullopt);
+
+    const std::map<std::string, unsigned> dishes1 = {
+        {"hinkali", 5}, {"harcho", 4}, {"hachapuri", 5}};
+    client.estimateEstablishment("someUser@mail.ru", "ProHinkali", "Moscow", dishes1);
+
+    const std::map<std::string, unsigned> dishes2 = {{"borsch", 3}, {"pelmeni", 5}};
+    client.estimateEstablishment("someUser@mail.ru", "TarasBulba", "Moscow", dishes1);
+
+    // 5.Get establishments: valid case
+    std::tie(ok, reason) = client.getEstimations("someUser@mail.ru", establishments);
+    ASSERT_EQ(true, ok);
+
+    const auto& [est1Name, est1Address, estDishes1] = establishments[0];
+    ASSERT_EQ("ProHinkali", est1Name);
+    ASSERT_EQ("Moscow", est1Address);
+
+    const auto& [est2Name, est2Address, estDishes2] = establishments[1];
+    ASSERT_EQ("TarasBulba", est2Name);
+    ASSERT_EQ("Moscow", est2Address);
+
+    // 6.Stop server
+    api_grpc::stopServer();
+    serverThread.join();
+}
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
 

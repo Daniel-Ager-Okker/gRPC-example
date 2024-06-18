@@ -32,6 +32,11 @@ public:
                           const std::string&                     establishmentAddress,
                           const std::map<std::string, unsigned>& dishes);
 
+    using Establishment_t = std::tuple<std::string, std::string, std::map<std::string, unsigned>>;
+    //! Method for get subscription establishments
+    std::pair<bool, std::string> getEstimations(const std::string&            subscribtionMail,
+                                                std::vector<Establishment_t>& establishments);
+
 private:
     std::unique_ptr<GrpcTransport::Stub> pStub_;
 };
