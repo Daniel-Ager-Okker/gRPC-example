@@ -30,5 +30,5 @@ void api_grpc::stopServer() {
     pServer->Shutdown();
 
     delete pService;
-    pServer.release();
+    delete (pServer.release());
 }
